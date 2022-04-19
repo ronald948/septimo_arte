@@ -74,6 +74,10 @@
 			$traduccion_titulo = $value['data']['title'];
 			$traduccion_contenido = $value['data']['overview'];
 
+			If (trim($traduccion_titulo) == ""){
+				$traduccion_titulo = $original_title;
+			}
+
 			If (trim($traduccion_contenido) != ""){
 				$descripcion = $traduccion_contenido;
 			}
@@ -181,6 +185,17 @@
    	//$html = $html.' <p> <a href="#" rel="nofollow" >{getButton} $text={Información} $icon={previous} $color={#80c7e8}</a></p> ';
    	//$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
    	$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
+   	$html = $html.' <p><a href="#" rel="nofollow">{getButton} $text={Leyenda} $icon={previous} $color={#80c7e8}</a></p> ';
+
+   	$html = $html.' <div class="separator" style="clear: both; text-align: left;"> ';
+   	$html = $html. ' <ul style="text-align: left;"> ';
+   	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1f2-1f1fd.png" style="top: 5px;" width="20" /></span> Español&nbsp; Latino</li>';
+   	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1ea-1f1f8.png" style="top: 5px;" width="20" /></span> Español Castellano</li>';
+   	$html = $html. '  <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1fa-1f1f8.png" style="top: 5px;" width="20" /></span> Inglés Subtítulos Español</li> ';
+   	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1ef-1f1f5.png" style="top: 5px;" width="20" /></span> Japonés Subtítulos Español</li>';
+   	$html = $html. ' </ul>';
+   	$html = $html.' </div> ';
+   	$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
    	
    	$html = $html.' <ul class="tabs_movies"> ';
 
@@ -260,8 +275,12 @@
    	$html = $html.' </div> ';
 
    	$html = $html.' </div> ';
+
+
    	$html = $html.' <div style="clear: both;"> ';
    	$html = $html.' </div> ';
+
+   	$html = $html.' <blockquote> Si no puedes ver la Película en ninguno de nuestros Servers, deja un comentario y será resubida en pocos minutos. {alertWarning} </blockquote> ';
 
    	$html = $html. $genero_cadena;
 
