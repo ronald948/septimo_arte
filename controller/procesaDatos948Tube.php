@@ -50,6 +50,10 @@
    	$runtime = $detalle_movie['runtime'];
    	$pais = $detalle_movie['production_countries'][0]['iso_3166_1'];
 
+   	//////////////////////////////////////////////////////
+   	//////////////////// TRANSLATION /////////////////////
+   	//////////////////////////////////////////////////////
+
    	$translation_curl = curl_init();
 
 	curl_setopt_array($translation_curl, array(
@@ -69,29 +73,71 @@
 	
 	$traducciones = (json_decode($response_translation,true));
 
-	$traduccion_titulo = $original_title;
+	$titulo_mx = '';
+	$titulo_en = '';
+	$titulo_es = '';
+
+	$contenido_mx = '';
+	$contenido_en = '';
+	$contenido_es = '';
 
 	foreach ($traducciones['translations'] as $key => $value) {
 		If($value['iso_3166_1'] == 'MX'){
-			$traduccion_titulo = $value['data']['title'];
-			$traduccion_contenido = $value['data']['overview'];
+			$titulo_mx = $value['data']['title'];
+			$contenido_mx = $value['data']['overview'];
+		}
 
-			If (trim($traduccion_titulo) == ""){
-				$traduccion_titulo = $original_title;
-			}
+		If($value['iso_3166_1'] == 'US'){
+			$titulo_en = $value['data']['title'];
+			$contenido_en = $value['data']['overview'];
+		}
 
-			If (trim($traduccion_contenido) != ""){
-				$descripcion = $traduccion_contenido;
-			}
-
+		If($value['iso_3166_1'] == 'ES'){
+			$titulo_es = $value['data']['title'];
+			$contenido_es = $value['data']['overview'];
 		}
 	}
 
+	$traduccion_titulo = '';
 
-	$curl_videos = curl_init();
+	If (trim($titulo_mx) == "" && trim($titulo_en) == "" && trim($titulo_es) == ""){
+		$traduccion_titulo = $original_title;
+	}
 
-	curl_setopt_array($curl_videos, array(
-	  CURLOPT_URL => 'https://api.themoviedb.org/3/movie/'.$id_movie.'/videos?api_key=ccbaffcadfaedf4c79b5c009d0277e12&language=es',
+	If (trim($titulo_en) != ""){
+		$traduccion_titulo = $titulo_en;	
+	}
+	
+	If (trim($titulo_es) != ""){
+		$traduccion_titulo = $titulo_es;	
+	}
+
+	If (trim($titulo_mx) != ""){
+		$traduccion_titulo = $titulo_mx;	
+	}
+
+	/////////////////////////////////////////
+
+	If (trim($contenido_en) != ""){
+		$descripcion = $contenido_en;	
+	}
+	
+	If (trim($titulo_es) != ""){
+		$descripcion = $contenido_es;	
+	}
+
+	If (trim($titulo_mx) != ""){
+		$descripcion = $contenido_mx;	
+	}
+
+	//////////////////////////////////////////////////////
+	//////////////// TITLE ALTERNATIVE ///////////////////
+	//////////////////////////////////////////////////////
+
+	$curl_alter = curl_init();
+
+	curl_setopt_array($curl_alter, array(
+	  CURLOPT_URL => 'https://api.themoviedb.org/3/movie/'.$id_movie.'/alternative_titles?api_key=ccbaffcadfaedf4c79b5c009d0277e12',
 	  CURLOPT_RETURNTRANSFER => true,
 	  CURLOPT_ENCODING => '',
 	  CURLOPT_MAXREDIRS => 10,
@@ -101,21 +147,13 @@
 	  CURLOPT_CUSTOMREQUEST => 'GET',
 	));
 
-	$response_videos = curl_exec($curl_videos);
+	$response_alter = curl_exec($curl_alter);
 
-	curl_close($curl_videos);
+	curl_close($curl_alter);
 	
+	$alter_titles = (json_decode($response_alter,true));
 
-	$videos_movie = (json_decode($response_videos,true));
-
-	$codigo_youtube = '';
-
-	foreach ($videos_movie['results'] as $key => $value) {
-		If($value['iso_639_1'] == 'es' && $value['type'] == 'Trailer' && $value['official'] == true && $value['site'] == 'YouTube'){
-			$codigo_youtube = $value['key'];
-		}
-	}
-
+	////////////////////////////////////////////////////
 
 	/*
 	$curl_conf = curl_init();
@@ -136,6 +174,9 @@
 	curl_close($curl_conf);
 	*/
 
+	//////////////////////////////////////////////////////
+	/////////////////////// IMAGE ////////////////////////
+	//////////////////////////////////////////////////////
 
 	$curl_images = curl_init();
 
@@ -169,6 +210,9 @@
 
 	$img_path = $base_path.$size_img."/".$img_poster;
 
+	//////////////////////////////////////////////////////
+	///////////////////////  HTML ////////////////////////
+	//////////////////////////////////////////////////////
 
    	$html = "";
 
@@ -182,19 +226,25 @@
    	$html = $html.' <div style="text-align: center;"><b>Estreno: '.$estreno.' | Pais: '.$pais.' | Tiempo: '.$runtime.' Min.</b></div><div><br /></div>';
    	$html = $html.' <div></div> ';
    	$html = $html.' <blockquote>'.$descripcion.' {alertInfo} '.'</blockquote> ';
-   	$html = $html.' <h3 style="clear: both; text-align: center;"><span style="font-size: medium;"><br /></span></h3><h3 style="clear: both; text-align: center;"><span style="font-size: medium;">VER '.strtoupper($traduccion_titulo).' EN ESPAÑOL LATINO HD GRATIS ONLINE</span></h3>';
-   	//$html = $html.' <div><span style="background-color: #f9f9f9; color: blue; font-family: monospace; font-size: 12px;" ></span></div> ';
-   	//$html = $html.' <p> <a href="#" rel="nofollow" >{getButton} $text={Información} $icon={previous} $color={#80c7e8}</a></p> ';
-   	//$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
-   	$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
-   	$html = $html.' <p><a href="#" rel="nofollow">{getButton} $text={Leyenda} $icon={previous} $color={#80c7e8}</a></p> ';
 
+   	$html = $html.' <h3 style="clear: both; text-align: center;"><span style="font-size: medium;"><br /></span></h3><h3 style="clear: both; text-align: center;"><span style="font-size: medium;"> FREE  '.strtoupper($traduccion_titulo).' MOVIE HD ONLINE</span></h3>';
+
+   	foreach ($alter_titles['titles'] as $key => $value) {
+   		If ($value['iso_3166_1'] == 'US' || $value['iso_3166_1'] == 'ES' || $value['iso_3166_1'] == 'MX' ){
+   			$html = $html.' <h3 style="clear: both; text-align: center;"><span style="font-size: medium;"> FREE  '.strtoupper($value['title']).' MOVIE HD ONLINE</span></h3>';
+   			
+   		}
+   	}
+
+   	$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
+
+   	$html = $html.' <p><a href="#" rel="nofollow">{getButton} $text={Leyenda} $icon={previous} $color={#80c7e8}</a></p> ';
    	$html = $html.' <div class="separator" style="clear: both; text-align: left;"> ';
    	$html = $html. ' <ul style="text-align: left;"> ';
    	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1f2-1f1fd.png" style="top: 5px;" width="20" /></span> Español&nbsp; Latino</li>';
    	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1ea-1f1f8.png" style="top: 5px;" width="20" /></span> Español Castellano</li>';
-   	$html = $html. '  <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1fa-1f1f8.png" style="top: 5px;" width="20" /></span> Inglés Subtítulos Español</li> ';
-   	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1ef-1f1f5.png" style="top: 5px;" width="20" /></span> Japonés Subtítulos Español</li>';
+   	$html = $html. '  <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1fa-1f1f8.png" style="top: 5px;" width="20" /></span> Inglés</li> ';
+   	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1ef-1f1f5.png" style="top: 5px;" width="20" /></span> Japonés</li>';
    	$html = $html. ' </ul>';
    	$html = $html.' </div> ';
    	$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
@@ -237,12 +287,7 @@
 	   	$html = $html.' </li> ';
    	}
 
-   	$html = $html.' <li> ';
-   	$html = $html.' <a href="#tab99">TRAILER   ';
-   	$html = $html.' <span style="font-size: medium;">  ';
-   	$html = $html.' <img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1f2-1f1fd.png" style="top: 5px;" width="20" /></span>  ';
-   	$html = $html.' </a> ';
-   	$html = $html.' </li> ';
+
    	$html = $html.' </ul> ';
 
 
@@ -272,17 +317,13 @@
 	   	$html = $html.' </div> ';
    	}
 
-   	$html = $html.' <div class="contenido_tab" id="tab99"> ';
-   	$html = $html. ' <iframe width="560" height="315" src="https://www.youtube.com/embed/'.$codigo_youtube.'" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> ' ;
-   	$html = $html.' </div> ';
-
    	$html = $html.' </div> ';
 
 
    	$html = $html.' <div style="clear: both;"> ';
    	$html = $html.' </div> ';
 
-   	$html = $html.' <blockquote> Si no puedes ver la Película en ninguno de nuestros Servers, deja un comentario y será resubida en pocos minutos. {alertWarning} </blockquote> ';
+   	$html = $html." <blockquote> Si no puedes ver la Película en ninguno de nuestros Servers, deja un comentario y será resubida en pocos minutos. ( If you can't see the Movie on any of our Servers, leave a comment and it will be reuploaded in a few minutes. ) {alertWarning} </blockquote> ";
 
    	$html = $html. $genero_cadena;
 
