@@ -14,7 +14,10 @@
 
 	$output = array();
 
-	// Detalle de la Pelicula
+	////////////////////////////////////////////////////////
+	//////////////// Detalle de la Pelicula ////////////////
+	////////////////////////////////////////////////////////
+
 	$curl_detalle = curl_init();
 
 	curl_setopt_array($curl_detalle, array(
@@ -31,7 +34,6 @@
 	$response = curl_exec($curl_detalle);
 
 	curl_close($curl_detalle);
-	//echo $response;
 
    	$detalle_movie = (json_decode($response,true));
 
@@ -39,6 +41,7 @@
    	$descripcion = $detalle_movie['overview'];
    	$generos = $detalle_movie['genres'];
 
+   	// GENEROS DE LA MOVIE
    	$genero_cadena = "";
    	foreach ($generos as $key => $value) {
    		$genero_cadena = trim($genero_cadena)." ".$value['name'].",";
@@ -50,6 +53,10 @@
    	$runtime = $detalle_movie['runtime'];
    	$pais = $detalle_movie['production_countries'][0]['iso_3166_1'];
 
+
+   	////////////////////////////////////////////////////////
+   	/////////////////  TRADUCCION DE CONTENIDO /////////////
+   	////////////////////////////////////////////////////////
    	$translation_curl = curl_init();
 
 	curl_setopt_array($translation_curl, array(
@@ -87,7 +94,33 @@
 		}
 	}
 
+	//////////////////////////////////////////////////////
+	//////////////// TITLE ALTERNATIVE ///////////////////
+	//////////////////////////////////////////////////////
 
+	$curl_alter = curl_init();
+
+	curl_setopt_array($curl_alter, array(
+	  CURLOPT_URL => 'https://api.themoviedb.org/3/movie/'.$id_movie.'/alternative_titles?api_key=ccbaffcadfaedf4c79b5c009d0277e12',
+	  CURLOPT_RETURNTRANSFER => true,
+	  CURLOPT_ENCODING => '',
+	  CURLOPT_MAXREDIRS => 10,
+	  CURLOPT_TIMEOUT => 0,
+	  CURLOPT_FOLLOWLOCATION => true,
+	  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+	  CURLOPT_CUSTOMREQUEST => 'GET',
+	));
+
+	$response_alter = curl_exec($curl_alter);
+
+	curl_close($curl_alter);
+	
+	$alter_titles = (json_decode($response_alter,true));
+
+
+	////////////////////////////////////////////////////////
+	//////////////////// ENLACES DE VIDEO //////////////////
+	////////////////////////////////////////////////////////
 	$curl_videos = curl_init();
 
 	curl_setopt_array($curl_videos, array(
@@ -137,6 +170,10 @@
 	*/
 
 
+	////////////////////////////////////////////////////////
+	///////////////////////  IMAGENES //////////////////////
+	////////////////////////////////////////////////////////
+
 	$curl_images = curl_init();
 
 	curl_setopt_array($curl_images, array(
@@ -163,13 +200,14 @@
 	}
 
 	
-
+	// RUTA DE POSTER
 	$base_path = "https://image.tmdb.org/t/p/";
 	$size_img = "original";
 
 	$img_path = $base_path.$size_img."/".$img_poster;
 
 
+	// ARMADO DE HTML
    	$html = "";
 
    	$html = ' <p><span style="text-align: center;"> </span></p> ';
@@ -182,11 +220,17 @@
    	$html = $html.' <div style="text-align: center;"><b>Estreno: '.$estreno.' | Pais: '.$pais.' | Tiempo: '.$runtime.' Min.</b></div><div><br /></div>';
    	$html = $html.' <div></div> ';
    	$html = $html.' <blockquote>'.$descripcion.' {alertInfo} '.'</blockquote> ';
+
    	$html = $html.' <h3 style="clear: both; text-align: center;"><span style="font-size: medium;"><br /></span></h3><h3 style="clear: both; text-align: center;"><span style="font-size: medium;">VER '.strtoupper($traduccion_titulo).' EN ESPAÑOL LATINO HD GRATIS ONLINE</span></h3>';
-   	//$html = $html.' <div><span style="background-color: #f9f9f9; color: blue; font-family: monospace; font-size: 12px;" ></span></div> ';
-   	//$html = $html.' <p> <a href="#" rel="nofollow" >{getButton} $text={Información} $icon={previous} $color={#80c7e8}</a></p> ';
-   	//$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
+
+   	foreach ($alter_titles['titles'] as $key => $value) {
+   		If ($value['iso_3166_1'] == 'US' || $value['iso_3166_1'] == 'ES' || $value['iso_3166_1'] == 'MX' ){
+   			$html = $html.' <h3 style="clear: both; text-align: center;"><span style="font-size: medium;"> VER  '.strtoupper($value['title']).' EN ESPAÑOL LATINO HD GRATIS ONLINE</span></h3>';
+   		}
+   	}
+
    	$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
+
    	$html = $html.' <p><a href="#" rel="nofollow">{getButton} $text={Leyenda} $icon={previous} $color={#80c7e8}</a></p> ';
 
    	$html = $html.' <div class="separator" style="clear: both; text-align: left;"> ';
