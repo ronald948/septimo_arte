@@ -14,7 +14,10 @@
 
 	$output = array();
 
-	// Detalle de la Pelicula
+	////////////////////////////////////////////////////////
+	//////////////// Detalle de la Pelicula ////////////////
+	////////////////////////////////////////////////////////
+
 	$curl_detalle = curl_init();
 
 	curl_setopt_array($curl_detalle, array(
@@ -31,7 +34,6 @@
 	$response = curl_exec($curl_detalle);
 
 	curl_close($curl_detalle);
-	//echo $response;
 
    	$detalle_movie = (json_decode($response,true));
 
@@ -39,6 +41,7 @@
    	$descripcion = $detalle_movie['overview'];
    	$generos = $detalle_movie['genres'];
 
+   	// GENEROS DE LA MOVIE
    	$genero_cadena = "";
    	foreach ($generos as $key => $value) {
    		$genero_cadena = trim($genero_cadena)." ".$value['name'].",";
@@ -48,12 +51,17 @@
    	$estreno = $detalle_movie['release_date'];
    	$vote_average = $detalle_movie['vote_average'];
    	$runtime = $detalle_movie['runtime'];
-   	$pais = $detalle_movie['production_countries'][0]['iso_3166_1'];
 
-   	//////////////////////////////////////////////////////
-   	//////////////////// TRANSLATION /////////////////////
-   	//////////////////////////////////////////////////////
+   	if(!isset($detalle_movie['production_countries'][0]['iso_3166_1'])){
+   		$pais = '';
+   	}else{
+   		$pais = $detalle_movie['production_countries'][0]['iso_3166_1'];	
+   	}   	
 
+
+   	////////////////////////////////////////////////////////
+   	/////////////////  TRADUCCION DE CONTENIDO /////////////
+   	////////////////////////////////////////////////////////
    	$translation_curl = curl_init();
 
 	curl_setopt_array($translation_curl, array(
@@ -174,9 +182,10 @@
 	curl_close($curl_conf);
 	*/
 
-	//////////////////////////////////////////////////////
-	/////////////////////// IMAGE ////////////////////////
-	//////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////
+	///////////////////////  IMAGENES //////////////////////
+	////////////////////////////////////////////////////////
 
 	$curl_images = curl_init();
 
@@ -196,6 +205,8 @@
 	curl_close($curl_images);
 
 	$images_movie = (json_decode($response_images,true));
+	$backdrops_lista = $images_movie['backdrops'];
+
 
 	if(!isset($images_movie['posters'][0]['file_path'])){
 		$img_poster = $poster_path;
@@ -203,8 +214,38 @@
 		$img_poster = $images_movie['posters'][0]['file_path'];
 	}
 
+	// BACKDROPS
 	
+	If ( empty($backdrops_lista)){
 
+		$curl_backdrops = curl_init();
+
+		curl_setopt_array($curl_backdrops, array(
+		  CURLOPT_URL => 'https://api.themoviedb.org/3/movie/'.$id_movie.'/images?api_key=ccbaffcadfaedf4c79b5c009d0277e12',
+		  CURLOPT_RETURNTRANSFER => true,
+		  CURLOPT_ENCODING => '',
+		  CURLOPT_MAXREDIRS => 10,
+		  CURLOPT_TIMEOUT => 0,
+		  CURLOPT_FOLLOWLOCATION => true,
+		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		  CURLOPT_CUSTOMREQUEST => 'GET',
+		));
+
+		$response_backdrops = curl_exec($curl_backdrops);
+
+		curl_close($curl_backdrops);
+
+		$backdrops_movie = (json_decode($response_backdrops,true));
+
+		$backdrops_lista = $backdrops_movie['backdrops'];
+	}
+
+	//var_dump($backdrops_lista);
+
+
+
+	
+	// RUTA DE POSTER
 	$base_path = "https://image.tmdb.org/t/p/";
 	$size_img = "original";
 
@@ -232,14 +273,86 @@
    	foreach ($alter_titles['titles'] as $key => $value) {
    		If ($value['iso_3166_1'] == 'US' || $value['iso_3166_1'] == 'ES' || $value['iso_3166_1'] == 'MX' ){
    			$html = $html.' <h3 style="clear: both; text-align: center;"><span style="font-size: medium;"> FREE  '.strtoupper($value['title']).' MOVIE HD ONLINE</span></h3>';
-   			
    		}
    	}
+    
+    $html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
+
+   	$html = $html.' <p><a href="#" rel="nofollow">{getButton} $text={Imágenes} $icon={previous} $color={#80c7e8}</a></p> ';
+
+
+   	$html = $html.' <div class="row-movie"> ';
+
+   	$cont = 1;
+   	foreach ($backdrops_lista as $key => $value) {
+   		If ($value['iso_639_1'] == 'en' || $value['iso_639_1'] == 'es' || $value['iso_639_1'] == 'mx' ||  $value['iso_639_1'] == null ){
+
+   			$ruta_back = $base_path.$size_img."/".$value['file_path'];
+
+   			$html = $html.' <div class="column-movie"> ';
+   			$html = $html.' <img src="'.$ruta_back.'" onclick="openModalMovie();currentSlideMovie('.$cont.')" class="hover-shadow-movie"> ';
+   			$html = $html.' </div> ';
+
+   			$cont = $cont+1;
+   		}
+   	}
+
+   	$html = $html.' </div> ';
+
+   	$html = $html.' <div id="myModal-movie" class="modal-movie"> ';
+
+   	$html = $html.' <span class="close-movie cursor-movie" onclick="closeModalMovie()">&times;</span> ';
+   	$html = $html.' <div class="modal-content-movie"> ';
+
+
+   	$cont = 1;
+   	foreach ($backdrops_lista as $key => $value) {
+   		If ($value['iso_639_1'] == 'en' || $value['iso_639_1'] == 'es' || $value['iso_639_1'] == 'mx' ||  $value['iso_639_1'] == null ){
+
+   			$ruta_back = $base_path.$size_img."/".$value['file_path'];
+
+   			$html = $html.' <div class="mySlides-movie"> ';
+   			$html = $html.' <div class="numbertext-movie">'.$cont.'</div> ';
+   			$html = $html.' <img src="'.$ruta_back.'" style="width:100%"> ';
+   			$html = $html.' </div> ';
+
+   			$cont = $cont+1;
+   		}
+   	}
+
+
+
+   	$html = $html.' <a class="prev-movie" onclick="plusSlidesMovie(-1)">&#10094;</a> ';
+   	$html = $html.' <a class="next-movie" onclick="plusSlidesMovie(1)">&#10095;</a> ';
+
+   	$html = $html.' <div class="caption-container-movie"> ';
+   	$html = $html.' <p id="caption-movie"></p> ';
+   	$html = $html.' </div>';
+
+   	$cont = 1;
+   	foreach ($backdrops_lista as $key => $value) {
+   		If ($value['iso_639_1'] == 'en' || $value['iso_639_1'] == 'es' || $value['iso_639_1'] == 'mx' ||  $value['iso_639_1'] == null ){
+
+   			$ruta_back = $base_path.$size_img."/".$value['file_path'];
+
+   			$html = $html.' <div class="column-movie"> ';
+   			$html = $html.' <img class="demo-movie" src="'.$ruta_back.'" onclick="currentSlideMovie('.$cont.')" alt="'.strtoupper($traduccion_titulo).'"> ';
+   			$html = $html.' </div> ';
+
+   			$cont = $cont+1;
+   		}
+   	}
+
+
+   	$html = $html.' </div> ';
+   	$html = $html.' </div> ';
+
 
    	$html = $html.' <div class="separator" style="clear: both; text-align: center;"><br /></div> ';
 
    	$html = $html.' <p><a href="#" rel="nofollow">{getButton} $text={Leyenda} $icon={previous} $color={#80c7e8}</a></p> ';
-   	$html = $html.' <div class="separator" style="clear: both; text-align: left;"> ';
+   	
+    $html = $html.' <div class="separator" style="clear: both; text-align: left;"> ';
    	$html = $html. ' <ul style="text-align: left;"> ';
    	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1f2-1f1fd.png" style="top: 5px;" width="20" /></span> Español&nbsp; Latino</li>';
    	$html = $html. ' <li><span style="font-size: medium;"><img height="20" src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/1f1ea-1f1f8.png" style="top: 5px;" width="20" /></span> Español Castellano</li>';
@@ -318,7 +431,6 @@
    	}
 
    	$html = $html.' </div> ';
-
 
    	$html = $html.' <div style="clear: both;"> ';
    	$html = $html.' </div> ';

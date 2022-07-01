@@ -279,6 +279,10 @@
    			$html = $html.' </div> ';
 
    			$cont = $cont+1;
+
+			if($cont == 12){
+				break;
+			} 
    		}
    	}
 
@@ -302,6 +306,10 @@
    			$html = $html.' </div> ';
 
    			$cont = $cont+1;
+
+			if($cont == 12){
+				break;
+			}
    		}
    	}
 
@@ -325,6 +333,10 @@
    			$html = $html.' </div> ';
 
    			$cont = $cont+1;
+
+   			if($cont == 12){
+				break;
+			}
    		}
    	}
 
